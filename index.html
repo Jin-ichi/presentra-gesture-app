@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gesture Presentation Controller</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+      <button id="close-app" title="Close App">×</button>
+      <div class="video-wrapper" id="viz-container">
+        <video class="input_video"></video>
+        <canvas class="output_canvas"></canvas>
+      </div>
+      <div id="status">READY</div>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+</html>

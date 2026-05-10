@@ -1,0 +1,89 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent; /* Allows transparency if set in main.js */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+
+  -webkit-app-region: drag;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 150px; /* Smaller, compact size */
+  height: 150px;
+  border-radius: 50%; /* Circular preview */
+  overflow: hidden;
+  border: 4px solid #333;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  transform: rotateY(180deg);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-wrapper, #status {
+  -webkit-app-region: no-drag;
+}
+
+/* Flash green border when a gesture is triggered */
+.video-wrapper.active-swipe {
+  border-color: #00ffcc;
+  box-shadow: 0 0 25px #00ffcc;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+video {
+  display: none;
+}
+
+#status {
+  transition: color 0.3s ease, background 0.3s ease;
+  margin-top: 10px;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 12px;
+  border-radius: 20px;
+  backdrop-filter: blur(5px);
+}
+
+#close-app {
+  position: absolute;
+  top: 10px;
+  right: 13px;
+  background: rgba(255, 0, 0, 0.3);
+  border: none;
+  color: white;
+  font-size: 20px;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  
+  /* CRITICAL: Allow clicking on a draggable area */
+  -webkit-app-region: no-drag; 
+}
+
+#close-app:hover {
+  background: rgba(255, 0, 0, 0.8);
+}

@@ -1,0 +1,45 @@
+{
+  "name": "presentra-gesture-app",
+  "version": "1.0.0",
+  "description": "Hand gesture controller for presentations",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "nodemon --ext js,css,html --exec electron .",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.Jean.gestureapp",
+    "productName": "Presentra",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon" : "/assets/presentra-icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "keywords": [],
+  "author": "Jean",
+  "license": "ISC",
+  "dependencies": {
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/drawing_utils": "^0.3.1675466124",
+    "@mediapipe/hands": "^0.4.1675469240",
+    "@nut-tree-fork/nut-js": "^4.2.6"
+  },
+  "devDependencies": {
+    "electron": "^41.2.0",
+    "electron-builder": "^26.8.1",
+    "nodemon": "^3.1.14"
+  }
+}
