@@ -38,7 +38,7 @@ Presentra is a lightweight Electron-based desktop application that allows users 
 1. **Clone the repository:**
 
 ```bash
-   git clone [https://github.com/your-username/presentra.git](https://github.com/your-username/presentra.git)
+   git clone https://github.com/Jin-ichi/presentra-gesture-app.git
    cd presentra
 ```
 
@@ -83,7 +83,7 @@ Presentra does **not** record, save, or transmit your video feed. The webcam str
 
 ## 📝 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License.
 
 ---
 
