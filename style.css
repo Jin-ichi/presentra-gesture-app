@@ -77,6 +77,34 @@ video {
   display: none;
 }
 
+.quick-controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.ctrl-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 0.7em;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.ctrl-btn.active {
+  background: rgba(0, 255, 204, 0.25);
+  border-color: #00ffcc;
+  color: #00ffcc;
+}
+
 #close-app {
   position: absolute;
   top: 10px;

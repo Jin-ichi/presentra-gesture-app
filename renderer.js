@@ -11,8 +11,8 @@ const canvasCtx = canvasElement.getContext('2d');
 const statusDiv = document.getElementById('status');
 const vizContainer = document.getElementById('viz-container');
 const conditionBadge = document.getElementById('condition-badge');
+const togglePointerBtn = document.getElementById('toggle-pointer');
 
-// Offscreen canvas for lightweight lighting analysis
 const lightCanvas = document.createElement('canvas');
 lightCanvas.width = 64;
 lightCanvas.height = 48;
@@ -20,34 +20,47 @@ const lightCtx = lightCanvas.getContext('2d', { willReadFrequently: true });
 
 // --- CONFIGURATION ---
 const CONFIG = {
-  holdDelayMs: 1000,          // Steady palm hold duration to unpause
-  stabilityThreshold: 0.015,  // Max movement allowed while holding palm
-  swipeCooldownMs: 1000,      // Cooldown between swipe triggers
-  swipeRatio: 0.4,            // Swipe delta relative to hand width
-  // Normalized hand size (wrist landmark 0 to middle MCP landmark 9)
-  minHandSize: 0.08,          // Too far if smaller
-  maxHandSize: 0.55,          // Too close if larger
-  // Lighting (average luminance 0 - 255)
+  holdDelayMs: 1000,
+  stabilityThreshold: 0.015,
+  actionCooldownMs: 900,
+  swipeRatio: 0.4,
+  minHandSize: 0.08,
+  maxHandSize: 0.55,
   lowLightThreshold: 55,
   lightingCheckIntervalMs: 500,
+  // Pointer & Zoom tuning
+  pointerSmoothing: 0.35,       // 0..1 (higher = faster response, lower = smoother)
+  pinchClickThreshold: 0.045,   // Normalized thumb-to-index distance for click
+  zoomDeltaThreshold: 0.06,     // Pinch spread/contract delta for zoom
 };
 
 // --- RUNTIME STATE ---
 const state = {
   isPaused: false,
+  pointerMode: false,
   cooldown: false,
   lastX: null,
   lastPos: { x: 0, y: 0 },
+  smoothedPointer: { x: 0.5, y: 0.5 },
+  lastPinchDist: null,
   palmHoldStartTime: null,
   lastLightingCheck: 0,
   isLowLight: false,
-  distanceStatus: 'ok', // 'ok' | 'too_far' | 'too_close'
+  distanceStatus: 'ok',
 };
 
 // --- HELPERS ---
 function setStatus(text, color = 'rgba(255, 255, 255, 0.85)') {
   statusDiv.innerText = text;
   statusDiv.style.color = color;
+}
+
+function setPointerMode(enabled) {
+  state.pointerMode = enabled;
+  state.lastPinchDist = null;
+  togglePointerBtn.textContent = enabled ? 'Pointer: ON' : 'Pointer: OFF';
+  togglePointerBtn.classList.toggle('active', enabled);
+  setStatus(enabled ? 'POINTER MODE' : 'READY', enabled ? '#00ffcc' : 'rgba(255, 255, 255, 0.85)');
 }
 
 function updateConditionBadge() {
@@ -66,9 +79,7 @@ function updateConditionBadge() {
 }
 
 function getHandSize(hand) {
-  const dx = hand[9].x - hand[0].x;
-  const dy = hand[9].y - hand[0].y;
-  return Math.hypot(dx, dy);
+  return Math.hypot(hand[9].x - hand[0].x, hand[9].y - hand[0].y);
 }
 
 function checkDistanceLimit(hand) {
@@ -86,9 +97,7 @@ function checkDistanceLimit(hand) {
 
 function checkLightingConditions(sourceImage) {
   const now = Date.now();
-  if (now - state.lastLightingCheck < CONFIG.lightingCheckIntervalMs) {
-    return;
-  }
+  if (now - state.lastLightingCheck < CONFIG.lightingCheckIntervalMs) return;
   state.lastLightingCheck = now;
 
   try {
@@ -98,68 +107,67 @@ function checkLightingConditions(sourceImage) {
     let lumaSum = 0;
     const pixelCount = data.length / 4;
     for (let i = 0; i < data.length; i += 4) {
-      // Rec. 601 perceived brightness
       lumaSum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
     }
 
-    const avgLuma = lumaSum / pixelCount;
-    state.isLowLight = avgLuma < CONFIG.lowLightThreshold;
+    state.isLowLight = (lumaSum / pixelCount) < CONFIG.lowLightThreshold;
     updateConditionBadge();
   } catch (err) {
     console.warn('Lighting check skipped:', err.message);
   }
 }
 
-function getHandState(hand) {
+// Returns an array of boole for [index, middle, ring, pinky] extended states
+function getFingerStates(hand) {
   const tips = [8, 12, 16, 20];
   const bases = [5, 9, 13, 17];
-  let extendedFingers = 0;
+  return tips.map((tipIdx, i) => hand[tipIdx].y < hand[bases[i]].y);
+}
 
-  for (let i = 0; i < tips.length; i++) {
-    if (hand[tips[i]].y < hand[bases[i]].y) {
-      extendedFingers++;
-    }
-  }
+function getHandState(hand) {
+  const [indexUp, middleUp, ringUp, pinkyUp] = getFingerStates(hand);
+  const extendedCount = [indexUp, middleUp, ringUp, pinkyUp].filter(Boolean).length;
 
-  if (extendedFingers <= 1) return 'fist';
-  if (extendedFingers >= 4) return 'palm';
+  if (extendedCount === 0) return 'fist';
+  if (extendedCount >= 4) return 'palm';
+  if (indexUp && middleUp && !ringUp && !pinkyUp) return 'victory';
+  if (indexUp && !middleUp && !ringUp && !pinkyUp) return 'point_up';
+  if (!indexUp && !middleUp && !ringUp && pinkyUp) return 'pinky_up';
   return 'neutral';
 }
 
-function triggerSwipe(direction) {
+function triggerAction(action, label = action.toUpperCase()) {
+  if (state.cooldown) return;
   state.cooldown = true;
-  setStatus(`SENT: ${direction.toUpperCase()}`, '#00ffcc');
+  setStatus(`SENT: ${label}`, '#00ffcc');
   vizContainer.classList.add('active-swipe');
 
-  ipcRenderer.send('gesture-swipe', direction);
+  ipcRenderer.send('gesture-action', action);
 
   setTimeout(() => {
     state.cooldown = false;
     if (!state.isPaused) {
-      setStatus('READY');
+      setStatus(state.pointerMode ? 'POINTER MODE' : 'READY');
     }
     vizContainer.classList.remove('active-swipe');
-  }, CONFIG.swipeCooldownMs);
+  }, CONFIG.actionCooldownMs);
 }
 
 // --- GESTURE HANDLERS ---
-function handlePauseAndUnpause(hand, gestureState, currentPos) {
+function handlePauseAndUnpause(gestureState, currentPos) {
   if (gestureState === 'fist' && !state.isPaused) {
     state.isPaused = true;
     state.palmHoldStartTime = null;
     setStatus('PAUSED (Fist)', '#ff4444');
     vizContainer.style.borderColor = '#ff4444';
-    return;
+    return true;
   }
 
   if (gestureState === 'palm' && state.isPaused) {
     const movement = Math.hypot(currentPos.x - state.lastPos.x, currentPos.y - state.lastPos.y);
 
     if (movement < CONFIG.stabilityThreshold) {
-      if (!state.palmHoldStartTime) {
-        state.palmHoldStartTime = Date.now();
-      }
-
+      if (!state.palmHoldStartTime) state.palmHoldStartTime = Date.now();
       const elapsed = Date.now() - state.palmHoldStartTime;
       const progress = Math.min((elapsed / CONFIG.holdDelayMs) * 100, 100);
       setStatus(`HOLDING... ${Math.floor(progress)}%`, '#ffcc00');
@@ -174,36 +182,82 @@ function handlePauseAndUnpause(hand, gestureState, currentPos) {
       state.palmHoldStartTime = null;
       setStatus('PAUSED (Keep Steady)', '#ff4444');
     }
-    return;
+    return true;
   }
 
   state.palmHoldStartTime = null;
+  return state.isPaused;
 }
 
-function handleSwipe(hand, currentPos) {
-  if (state.isPaused) return;
+function handlePointerAndZoom(hand, gestureState) {
+  const indexTip = hand[8];
+  const thumbTip = hand[4];
+  const pinchDist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
 
-  const isWithinDistance = checkDistanceLimit(hand);
-  if (!isWithinDistance) {
-    state.lastX = null;
+  // Victory gesture toggles pointer mode
+  if (gestureState === 'victory' && !state.cooldown) {
+    state.cooldown = true;
+    setPointerMode(!state.pointerMode);
+    setTimeout(() => { state.cooldown = false; }, CONFIG.actionCooldownMs);
+    return true;
+  }
+
+  if (state.pointerMode) {
+    state.smoothedPointer.x += (indexTip.x - state.smoothedPointer.x) * CONFIG.pointerSmoothing;
+    state.smoothedPointer.y += (indexTip.y - state.smoothedPointer.y) * CONFIG.pointerSmoothing;
+    ipcRenderer.send('pointer-move', state.smoothedPointer);
+
+    if (pinchDist < CONFIG.pinchClickThreshold && !state.cooldown) {
+      triggerAction('pointer_click', 'CLICK');
+    }
+    return true;
+  }
+
+  // Zoom in/out via thumb-to-index spread or pinch
+  if (state.lastPinchDist !== null) {
+    const delta = pinchDist - state.lastPinchDist;
+    if (delta > CONFIG.zoomDeltaThreshold) {
+      triggerAction('zoom_in', 'ZOOM IN');
+      state.lastPinchDist = pinchDist;
+      return true;
+    }
+    if (delta < -CONFIG.zoomDeltaThreshold) {
+      triggerAction('zoom_out', 'ZOOM OUT');
+      state.lastPinchDist = pinchDist;
+      return true;
+    }
+  }
+  state.lastPinchDist = pinchDist;
+  return false;
+}
+
+function handleMediaAndSwipe(hand, gestureState, currentPos) {
+  if (gestureState === 'point_up') {
+    triggerAction('volume_up', 'VOL UP');
+    return;
+  }
+  if (gestureState === 'pinky_up') {
+    triggerAction('volume_down', 'VOL DOWN');
     return;
   }
 
-  const dx = hand[5].x - hand[17].x;
-  const dy = hand[5].y - hand[17].y;
-  const handWidth = Math.hypot(dx, dy);
-  const dynamicThreshold = handWidth * CONFIG.swipeRatio;
+  // Swipe left/right on open palm / neutral hand
+  if (gestureState === 'palm' || gestureState === 'neutral') {
+    const handWidth = Math.hypot(hand[5].x - hand[17].x, hand[5].y - hand[17].y);
+    const dynamicThreshold = handWidth * CONFIG.swipeRatio;
 
-  if (state.lastX !== null && !state.cooldown) {
-    const deltaX = currentPos.x - state.lastX;
-    if (deltaX > dynamicThreshold) {
-      triggerSwipe('right');
-    } else if (deltaX < -dynamicThreshold) {
-      triggerSwipe('left');
+    if (state.lastX !== null && !state.cooldown) {
+      const deltaX = currentPos.x - state.lastX;
+      if (deltaX > dynamicThreshold) {
+        triggerAction('next_slide', 'RIGHT');
+      } else if (deltaX < -dynamicThreshold) {
+        triggerAction('prev_slide', 'LEFT');
+      }
     }
+    state.lastX = currentPos.x;
+  } else {
+    state.lastX = null;
   }
-
-  state.lastX = currentPos.x;
 }
 
 // --- MEDIAPIPE CALLBACK ---
@@ -221,14 +275,25 @@ function onResults(results) {
     const gestureState = getHandState(hand);
     const currentPos = { x: hand[9].x, y: hand[9].y };
 
-    handlePauseAndUnpause(hand, gestureState, currentPos);
-    handleSwipe(hand, currentPos);
+    const pausedOrHandled = handlePauseAndUnpause(gestureState, currentPos);
+    if (!pausedOrHandled) {
+      if (!checkDistanceLimit(hand)) {
+        state.lastX = null;
+        state.lastPinchDist = null;
+      } else {
+        const handledPointerOrZoom = handlePointerAndZoom(hand, gestureState);
+        if (!handledPointerOrZoom) {
+          handleMediaAndSwipe(hand, gestureState, currentPos);
+        }
+      }
+    }
 
     state.lastPos = currentPos;
   } else {
     state.distanceStatus = 'ok';
+    state.lastPinchDist = null;
     updateConditionBadge();
-    setStatus(state.isPaused ? 'PAUSED' : 'Waiting...');
+    setStatus(state.isPaused ? 'PAUSED' : (state.pointerMode ? 'POINTER MODE' : 'Waiting...'));
     state.palmHoldStartTime = null;
     state.lastX = null;
   }
@@ -247,17 +312,13 @@ function resolveMediaPipeFile(file) {
   return path.join(__dirname, 'node_modules/@mediapipe/hands', file);
 }
 
-const hands = new Hands({
-  locateFile: resolveMediaPipeFile,
-});
-
+const hands = new Hands({ locateFile: resolveMediaPipeFile });
 hands.setOptions({
   maxNumHands: 1,
   modelComplexity: 1,
   minDetectionConfidence: 0.5,
   minTrackingConfidence: 0.5,
 });
-
 hands.onResults(onResults);
 
 const camera = new Camera(videoElement, {
@@ -267,8 +328,19 @@ const camera = new Camera(videoElement, {
   width: 640,
   height: 480,
 });
-
 camera.start();
+
+togglePointerBtn.addEventListener('click', () => {
+  setPointerMode(!state.pointerMode);
+});
+
+document.querySelectorAll('[data-action]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const action = btn.getAttribute('data-action');
+    ipcRenderer.send('gesture-action', action);
+    setStatus(`SENT: ${action.toUpperCase()}`, '#00ffcc');
+  });
+});
 
 document.getElementById('close-app').addEventListener('click', () => {
   window.close();
