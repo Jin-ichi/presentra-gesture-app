@@ -2,17 +2,22 @@ const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const { keyboard, mouse, Key, Button, Point } = require('@nut-tree-fork/nut-js');
 const path = require('path');
 
+let mainWindow = null;
+
 // Keep mouse movement responsive in pointer mode
 mouse.config.autoDelayMs = 5;
 mouse.config.mouseSpeed = 2000;
 
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 260,
-    height: 290,
+    height: 300,
+    transparent: true,
+    frame: false,
+    backgroundColor: '#00000000',
     alwaysOnTop: true,
     resizable: false,
-    titleBarStyle: 'hidden',
+    hasShadow: false,
     icon: path.join(__dirname, 'assets/presentra-icon.ico'),
     webPreferences: {
       nodeIntegration: true,
@@ -20,8 +25,30 @@ function createWindow() {
     },
   });
 
-  win.loadFile('index.html');
+  mainWindow.loadFile('index.html');
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
+
+// Dynamic window resizing for HUD vs. Tutorial / Settings drawers
+ipcMain.on('resize-window', (_event, dimensions) => {
+  if (!mainWindow || mainWindow.isDestroyed() || !dimensions) return;
+
+  const width = Number(dimensions.width);
+  const height = Number(dimensions.height);
+
+  if (Number.isFinite(width) && Number.isFinite(height)) {
+    const clampedWidth = Math.max(220, Math.min(800, Math.round(width)));
+    const clampedHeight = Math.max(240, Math.min(800, Math.round(height)));
+
+    // Temporarily allow resize so Windows honors both expanding and shrinking
+    mainWindow.setResizable(true);
+    mainWindow.setContentSize(clampedWidth, clampedHeight);
+    mainWindow.setResizable(false);
+  }
+});
 
 // Helper to safely trigger a key if it exists on nut.js Key enum
 async function safePressKey(...keys) {
@@ -45,7 +72,6 @@ ipcMain.on('gesture-action', async (_event, action) => {
         break;
 
       case 'zoom_in': {
-        // Ctrl + Plus (falls back to mouse scroll up if needed)
         const plusKey = Key.Add ?? Key.Equal;
         const sent = await safePressKey(Key.LeftControl, plusKey);
         if (!sent && typeof mouse.scrollUp === 'function') {
@@ -64,7 +90,6 @@ ipcMain.on('gesture-action', async (_event, action) => {
       }
 
       case 'media_play_pause': {
-        // Tries nut.js media key names if exposed in your installed version
         const mediaKey = Key.MediaPlayPause ?? Key.AudioPlay ?? Key.Play;
         if (mediaKey) {
           await keyboard.type(mediaKey);
@@ -108,7 +133,6 @@ ipcMain.on('gesture-action', async (_event, action) => {
 ipcMain.on('pointer-move', async (_event, { x, y }) => {
   try {
     const { width, height } = screen.getPrimaryDisplay().bounds;
-    // Mirror X to match the flipped webcam preview
     const clampedX = Math.max(0, Math.min(1, 1 - x));
     const clampedY = Math.max(0, Math.min(1, y));
     const targetX = Math.round(clampedX * width);

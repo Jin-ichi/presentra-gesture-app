@@ -4,12 +4,20 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gesture Presentation Controller</title>
+  <title>Presentra | Gesture Presentation Controller</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-      <button id="close-app" title="Close App">×</button>
+  <div class="container" id="app-container">
+    <!-- Top bar controls -->
+    <div class="top-bar">
+      <button id="open-tutorial" class="icon-btn" title="Tutorial & Gestures">?</button>
+      <button id="open-settings" class="icon-btn" title="Settings">⚙</button>
+      <button id="close-app" class="icon-btn danger" title="Close App">×</button>
+    </div>
+
+    <!-- Main HUD view -->
+    <div id="hud-view" class="hud-view">
       <div class="video-wrapper" id="viz-container">
         <video class="input_video"></video>
         <canvas class="output_canvas" width="320" height="240"></canvas>
@@ -24,6 +32,133 @@
         <button data-action="media_play_pause" class="ctrl-btn" title="Play/Pause Media">⏯</button>
       </div>
     </div>
-    <script src="renderer.js"></script>
+
+    <!-- Tutorial Drawer -->
+    <section id="tutorial-panel" class="drawer hidden" aria-label="In-App Tutorial">
+      <div class="drawer-header">
+        <h2>Gesture Tutorial</h2>
+        <button class="close-drawer" data-close="tutorial-panel">Done</button>
+      </div>
+      <div class="drawer-body">
+        <div class="tutorial-card">
+          <strong>✊ Fist</strong>
+          <span>Instantly pauses tracking while talking or adjusting.</span>
+        </div>
+        <div class="tutorial-card">
+          <strong>✋ Steady Palm (1s)</strong>
+          <span>Hold still for 1 second to unpause and resume control.</span>
+        </div>
+        <div class="tutorial-card">
+          <strong>⬅️ ➡️ Swipe Left / Right</strong>
+          <span>Move hand horizontally to go to previous or next slide.</span>
+        </div>
+        <div class="tutorial-card">
+          <strong>✌️ Victory (2 Fingers)</strong>
+          <span>Toggles Pointer Mode. Move with index finger; pinch thumb + index to click.</span>
+        </div>
+        <div class="tutorial-card">
+          <strong>🤏 Pinch / Spread</strong>
+          <span>Spread thumb &amp; index to Zoom In; pinch together to Zoom Out.</span>
+        </div>
+        <div class="tutorial-card">
+          <strong>☝️ Point Up / 🤙 Pinky Up</strong>
+          <span>Point up for Volume Up; raise pinky alone for Volume Down.</span>
+        </div>
+        <div class="tutorial-tip">
+          <strong>Tips:</strong> Keep your hand inside the comfortable camera range and ensure even front lighting so landmarks stay steady.
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Drawer -->
+    <section id="settings-panel" class="drawer hidden" aria-label="Settings">
+      <div class="drawer-header">
+        <h2>Settings</h2>
+        <button class="close-drawer" data-close="settings-panel">Done</button>
+      </div>
+      <div class="drawer-body">
+        <div class="settings-group">
+          <h3>Distance &amp; Lighting</h3>
+
+          <label class="slider-row">
+            <span>Min Hand Size (Too Far): <strong id="val-min-hand">0.08</strong></span>
+            <input type="range" id="cfg-min-hand" min="0.03" max="0.25" step="0.01">
+          </label>
+
+          <label class="slider-row">
+            <span>Max Hand Size (Too Close): <strong id="val-max-hand">0.55</strong></span>
+            <input type="range" id="cfg-max-hand" min="0.30" max="0.85" step="0.01">
+          </label>
+
+          <label class="slider-row">
+            <span>Low Light Threshold: <strong id="val-low-light">55</strong></span>
+            <input type="range" id="cfg-low-light" min="20" max="120" step="1">
+          </label>
+        </div>
+
+        <div class="settings-group">
+          <h3>Feature Toggles</h3>
+          <label class="toggle-row">
+            <input type="checkbox" id="cfg-enable-swipe">
+            <span>Slide Swipes (Left / Right)</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="cfg-enable-zoom">
+            <span>Zoom In / Out</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="cfg-enable-pointer">
+            <span>Pointer Mode &amp; Click</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="cfg-enable-media">
+            <span>Volume &amp; Media Gestures</span>
+          </label>
+        </div>
+
+        <div class="settings-group">
+          <h3>Gesture Mappings (Add / Edit)</h3>
+          <div id="gesture-mapping-list" class="mapping-list"></div>
+
+          <form id="gesture-mapping-form" class="mapping-form">
+            <input type="hidden" id="edit-mapping-index" value="-1">
+            <div class="mapping-inputs">
+              <select id="map-gesture-key" title="Gesture Pose">
+                <option value="swipe_left">Swipe Left</option>
+                <option value="swipe_right">Swipe Right</option>
+                <option value="zoom_in">Zoom In</option>
+                <option value="zoom_out">Zoom Out</option>
+                <option value="point_up">Point Up</option>
+                <option value="pinky_up">Pinky Up</option>
+                <option value="victory">Victory (2 Fingers)</option>
+              </select>
+
+              <select id="map-action-value" title="Target Action">
+                <option value="prev_slide">Previous Slide (Left)</option>
+                <option value="next_slide">Next Slide (Right)</option>
+                <option value="zoom_in">Zoom In</option>
+                <option value="zoom_out">Zoom Out</option>
+                <option value="volume_up">Volume Up</option>
+                <option value="volume_down">Volume Down</option>
+                <option value="media_play_pause">Play / Pause Media</option>
+                <option value="pointer_click">Left Click</option>
+                <option value="none">Disabled / None</option>
+              </select>
+            </div>
+            <div class="mapping-form-actions">
+              <button type="submit" id="save-mapping-btn" class="small-btn primary">Add Mapping</button>
+              <button type="button" id="cancel-edit-btn" class="small-btn hidden">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="settings-footer">
+          <button type="button" id="reset-settings-btn" class="small-btn danger-outline">Reset Defaults</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="renderer.js"></script>
 </body>
 </html>
