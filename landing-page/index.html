@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presentra | Master Your Flow</title>
-    <!-- Modern Font -->
+    <title>Presentra | Touchless Gesture Presentation Controller</title>
+    <meta name="description" content="Ditch the clicker. Control PowerPoint, Google Slides, and Canva with touchless hand gestures, pointer mode, and zoom right from your webcam.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="landing-style.css">
     <link rel="icon" href="assets/presentra-icon.ico" type="image/x-icon">
@@ -14,7 +14,8 @@
         <nav>
             <div class="logo">Pre<span>sentra</span></div>
             <div class="nav-links">
-                <a href="#how-it-works">How it works</a>
+                <a href="#how-it-works">Gestures</a>
+                <a href="#smart-features">Smart HUD</a>
                 <a href="#technology">Technology</a>
                 <a href="#download" class="nav-btn">Download</a>
             </div>
@@ -23,45 +24,115 @@
 
     <main>
         <section class="hero">
-            <div class="badge">v1.0.0 is now live</div>
+            <div class="badge">v1.1.0 for Windows is now live</div>
             <h1>Ditch the clicker. <br><span>Command</span> the room.</h1>
-            <p>The touchless gesture controller that turns your webcam into a high-precision presentation remote.</p>
+            <p>The touchless gesture controller that turns your webcam into a high-precision presentation remote—with pointer mode, zoom, and media controls.</p>
             
             <div class="cta-group">
-                <a href="#download" class="btn-primary">Download for Windows</a>
-                <a href="#how-it-works" class="btn-secondary">See Gestures</a>
+                <a href="#download" class="btn-primary">Download for Windows (380 MB)</a>
+                <a href="#how-it-works" class="btn-secondary">Explore Gestures</a>
             </div>
 
-            <!-- App Preview Placeholder -->
+            <!-- Interactive App Preview Mockup -->
             <div class="app-preview">
                 <div class="preview-window">
-                    <div class="window-dot red"></div>
-                    <div class="window-dot yellow"></div>
-                    <div class="window-dot green"></div>
+                    <div class="window-bar">
+                        <div class="window-dots">
+                            <span class="window-dot red"></span>
+                            <span class="window-dot yellow"></span>
+                            <span class="window-dot green"></span>
+                        </div>
+                        <span class="window-title">Q4 Product Keynote.pptx — Slide <span id="demo-slide-num">1</span> of 4</span>
+                    </div>
+
                     <div class="mock-content">
-                        <div class="gesture-visualizer"></div>
+                        <div class="mock-slide" id="mock-slide">
+                            <span class="slide-tag">LIVE DEMO PREVIEW</span>
+                            <h3 id="demo-slide-title">1. Touchless Slide Control</h3>
+                            <p id="demo-slide-desc">Click any gesture pill below to preview how Presentra controls your deck in real time.</p>
+                        </div>
+
+                        <!-- Floating Presentra HUD Widget -->
+                        <div class="hud-mockup" id="hud-mockup">
+                            <div class="hud-top-icons">
+                                <span>?</span>
+                                <span>⚙</span>
+                                <span>×</span>
+                            </div>
+                            <div class="hud-cam-ring" id="hud-ring">
+                                <span class="hud-hand-icon" id="hud-hand">✋</span>
+                            </div>
+                            <div class="hud-status-pill" id="hud-status">READY (ACTIVE)</div>
+                        </div>
+                    </div>
+
+                    <div class="demo-controls">
+                        <button type="button" class="demo-btn" data-demo="prev">⬅️ Swipe Left</button>
+                        <button type="button" class="demo-btn" data-demo="next">➡️ Swipe Right</button>
+                        <button type="button" class="demo-btn" data-demo="zoom">🤏 Zoom In/Out</button>
+                        <button type="button" class="demo-btn" data-demo="pause">✊ Fist Pause</button>
+                        <button type="button" class="demo-btn" data-demo="palm">✋ Steady Palm</button>
                     </div>
                 </div>
             </div>
         </section>
 
         <section id="how-it-works" class="features">
-            <h2 class="section-title">One hand. Infinite control.</h2>
+            <h2 class="section-title">One hand. Complete control.</h2>
+            <p class="section-subtitle">Designed for natural speakers—talk with your hands freely, then trigger commands only when you intend to.</p>
+
             <div class="feature-grid">
                 <div class="feature-card">
-                    <div class="icon-wrap">🖐️</div>
-                    <h3>Open Palm</h3>
-                    <p>Wakes the system. Use this when you're ready to engage the audience.</p>
+                    <div class="icon-wrap">✊</div>
+                    <h3>Fist to Pause</h3>
+                    <p>Instant safety lock. Gesture naturally while explaining complex slides without triggering accidental page turns.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon-wrap">✊</div>
-                    <h3>Closed Fist</h3>
-                    <p>Safety lock. Point at your screen or talk freely without accidental swipes.</p>
+                    <div class="icon-wrap">✋</div>
+                    <h3>Steady Palm (1s)</h3>
+                    <p>Hold an open palm steady for one second to unlock and wake the controller when you're ready to advance.</p>
                 </div>
                 <div class="feature-card">
                     <div class="icon-wrap">↔️</div>
-                    <h3>Swift Swipe</h3>
-                    <p>Proprietary velocity tracking ensures slides only change when you mean it.</p>
+                    <h3>Scale-Aware Swipes</h3>
+                    <p>Swipe left or right to navigate slides. Thresholds adapt dynamically to your distance from the webcam.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon-wrap">✌️</div>
+                    <h3>Pointer Mode &amp; Click</h3>
+                    <p>Flash a two-finger Victory sign to turn your index fingertip into a smooth cursor, and pinch to click links or videos.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon-wrap">🤏</div>
+                    <h3>Pinch &amp; Spread Zoom</h3>
+                    <p>Spread your thumb and index finger to zoom into charts and diagrams, or pinch together to zoom back out.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon-wrap">☝️</div>
+                    <h3>Volume &amp; Media</h3>
+                    <p>Point up to raise volume, raise your pinky to lower it, or use quick HUD buttons for instant media playback control.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="smart-features" class="smart-section">
+            <div class="tech-header">
+                <span class="tech-label">Built for Real Rooms</span>
+                <h2>Smart guardrails &amp; custom mappings.</h2>
+            </div>
+
+            <div class="smart-grid">
+                <div class="smart-card">
+                    <h4>📏 Distance Range Guard</h4>
+                    <p>Automatically alerts you with <strong>MOVE CLOSER</strong> or <strong>MOVE BACK</strong> if your hand leaves the optimal tracking zone.</p>
+                </div>
+                <div class="smart-card">
+                    <h4>💡 Low-Light Detection</h4>
+                    <p>Monitors frame luminance in real time and warns you when dim stage lighting could affect landmark accuracy.</p>
+                </div>
+                <div class="smart-card">
+                    <h4>⚙️ Custom Gesture Mappings</h4>
+                    <p>Open the built-in Settings drawer to toggle features, fine-tune thresholds, and remap gestures to your preferred actions.</p>
                 </div>
             </div>
         </section>
@@ -69,7 +140,7 @@
         <section id="technology" class="tech-stack">
             <div class="tech-header">
                 <span class="tech-label">The Engine</span>
-                <h2>Built with industry-leading AI.</h2>
+                <h2>Built with on-device AI.</h2>
             </div>
             
             <div class="tech-grid">
@@ -77,8 +148,8 @@
                     <div class="tech-icon-container">
                         <img src="https://www.i-programmer.info/images/stories/News/2023/May/B/mediapipe.jpg" alt="MediaPipe">
                     </div>
-                    <h4>MediaPipe</h4>
-                    <p>Real-time hand landmark tracking with sub-millisecond latency, powered by Google's on-device ML.</p>
+                    <h4>MediaPipe Hands</h4>
+                    <p>Real-time 21-point hand landmark tracking running locally on your machine with zero cloud latency.</p>
                 </div>
 
                 <div class="tech-item">
@@ -86,7 +157,7 @@
                         <img src="https://www.electronjs.org/assets/img/logo.svg" alt="Electron">
                     </div>
                     <h4>Electron</h4>
-                    <p>Cross-platform desktop architecture ensuring a lightweight HUD that floats over any presentation software.</p>
+                    <p>Transparent, always-on-top desktop HUD that floats cleanly over PowerPoint, Google Slides, and Canva.</p>
                 </div>
 
                 <div class="tech-item">
@@ -94,33 +165,100 @@
                         <div class="nut-icon">🌰</div>
                     </div>
                     <h4>Nut.js</h4>
-                    <p>Native system-level automation for precise keyboard injection without lag or input missed.</p>
+                    <p>Native OS keyboard and cursor automation for responsive slide navigation, zoom, and pointer control.</p>
                 </div>
 
                 <div class="tech-item">
                     <div class="tech-icon-container">
                         <div class="wasm-icon">W</div>
                     </div>
-                    <h4>WebAssembly</h4>
-                    <p>High-performance binary execution of AI models directly on your CPU for maximum privacy and speed.</p>
+                    <h4>100% Local Privacy</h4>
+                    <p>Your webcam feed never leaves your computer—every frame is processed in volatile memory and discarded.</p>
                 </div>
             </div>
         </section>
 
         <section id="download" class="download-section">
             <div class="download-card">
+                <div class="badge">Version 1.1.0 • Windows Installer (.exe)</div>
                 <h2>Ready to elevate your pitch?</h2>
-                <p>Presentra runs as a lightweight HUD over any application.</p>
-                <a href="./presentra_setup.exe" download class="btn-large">
-                    Get Presentra for Windows
+                <p>Install Presentra in seconds and control any presentation software hands-free.</p>
+
+                <!-- Replace YOUR_GITHUB_USERNAME/presentra-gesture-app with your actual GitHub Release URL -->
+                <a
+                    href="https://github.com/Jin-ichi/presentra-gesture-app/releases/latest/download/Presentra-Setup-1.1.0.exe"
+                    download="Presentra-Setup-1.1.0.exe"
+                    class="btn-large"
+                >
+                    Download Presentra for Windows (380 MB)
                 </a>
-                <p class="subtext">Requires Windows 10/11 & a standard Webcam</p>
+
+                <p class="subtext">Windows 10 / 11 (64-bit) • Requires a standard webcam • Free &amp; Open Source</p>
+                <p class="smartscreen-note">
+                    <strong>First-time install tip:</strong> If Windows SmartScreen prompts on an unsigned student release, click <em>More info → Run anyway</em>.
+                </p>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2026 Presentra. Designed for the modern speaker.</p>
+        <p>&copy; 2026 Presentra • Built by Jean Pierre Armas &amp; Fher Ian Daniel</p>
     </footer>
+
+    <script>
+        const slides = [
+            { title: '1. Touchless Slide Control', desc: 'Click any gesture pill below to preview how Presentra controls your deck in real time.' },
+            { title: '2. Intent-Lock Safety', desc: 'Make a fist while speaking so natural hand movements never skip your slides.' },
+            { title: '3. Precision Pointer & Zoom', desc: 'Highlight key metrics with your fingertip or pinch-spread to zoom into charts.' },
+            { title: '4. Built-in Tutorial & Settings', desc: 'Customize distance limits, low-light alerts, and gesture mappings right inside the HUD.' },
+        ];
+
+        let currentSlide = 0;
+        let isZoomed = false;
+
+        const slideNumEl = document.getElementById('demo-slide-num');
+        const slideTitleEl = document.getElementById('demo-slide-title');
+        const slideDescEl = document.getElementById('demo-slide-desc');
+        const mockSlideEl = document.getElementById('mock-slide');
+        const hudRing = document.getElementById('hud-ring');
+        const hudHand = document.getElementById('hud-hand');
+        const hudStatus = document.getElementById('hud-status');
+
+        function renderSlide() {
+            slideNumEl.textContent = currentSlide + 1;
+            slideTitleEl.textContent = slides[currentSlide].title;
+            slideDescEl.textContent = slides[currentSlide].desc;
+        }
+
+        function flashHud(emoji, statusText, borderColor = '#00ffcc') {
+            hudHand.textContent = emoji;
+            hudStatus.textContent = statusText;
+            hudStatus.style.color = borderColor;
+            hudRing.style.borderColor = borderColor;
+        }
+
+        document.querySelectorAll('[data-demo]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const action = btn.getAttribute('data-demo');
+                if (action === 'next') {
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    renderSlide();
+                    flashHud('➡️', 'SENT: RIGHT');
+                } else if (action === 'prev') {
+                    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                    renderSlide();
+                    flashHud('⬅️', 'SENT: LEFT');
+                } else if (action === 'zoom') {
+                    isZoomed = !isZoomed;
+                    mockSlideEl.style.transform = isZoomed ? 'scale(1.07)' : 'scale(1)';
+                    flashHud('🤏', isZoomed ? 'SENT: ZOOM IN' : 'SENT: ZOOM OUT');
+                } else if (action === 'pause') {
+                    flashHud('✊', 'PAUSED (FIST)', '#ff4444');
+                } else if (action === 'palm') {
+                    flashHud('✋', 'READY (ACTIVE)', '#00ffcc');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
