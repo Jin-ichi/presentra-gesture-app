@@ -12,6 +12,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 260,
     height: 300,
+    useContentSize: true,
     transparent: true,
     frame: false,
     backgroundColor: '#00000000',
@@ -40,12 +41,11 @@ ipcMain.on('resize-window', (_event, dimensions) => {
   const height = Number(dimensions.height);
 
   if (Number.isFinite(width) && Number.isFinite(height)) {
-    const clampedWidth = Math.max(220, Math.min(800, Math.round(width)));
-    const clampedHeight = Math.max(240, Math.min(800, Math.round(height)));
+    const clampedWidth = Math.max(260, Math.min(800, Math.round(width)));
+    const clampedHeight = Math.max(300, Math.min(800, Math.round(height)));
 
-    // Temporarily allow resize so Windows honors both expanding and shrinking
     mainWindow.setResizable(true);
-    mainWindow.setContentSize(clampedWidth, clampedHeight);
+    mainWindow.setSize(clampedWidth, clampedHeight);
     mainWindow.setResizable(false);
   }
 });
