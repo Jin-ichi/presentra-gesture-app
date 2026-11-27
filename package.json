@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "nodemon --ext js,css,html --exec electron .",
-    "dist": "electron-builder",
+    "dist": "electron-builder --win --x64",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
@@ -17,15 +17,30 @@
     },
     "files": [
       "**/*",
-      "node_modules/**/*"
+      "!landing-page/**",
+      "!dist/**",
+      "!**/*.md",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/@mediapipe/hands",
+        "to": "mediapipe-hands",
+        "filter": ["**/*"]
+      }
+    ],
+    "asarUnpack": [
+      "**/*.node"
     ],
     "win": {
       "target": "nsis",
-      "icon": "/assets/presentra-icon.ico"
+      "icon": "assets/presentra-icon.ico"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   },
   "keywords": [],
@@ -43,7 +58,7 @@
     "nodemon": "^3.1.14"
   },
   "allowScripts": {
-    "electron@41.2.0": true,
+    "electron@41.10.7": true,
     "electron-winstaller@5.4.0": true
   }
 }
